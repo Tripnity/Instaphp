@@ -1,5 +1,5 @@
 {
-    "name": "instaphp/instaphp",
+    "name": "tripnity/instaphp",
     "description": "A library for accessing Instagram's API (v2)",
     "keywords": ["library","instagram","instaphp"],
     "homepage": "http://instaphp.com",
