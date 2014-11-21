@@ -162,6 +162,11 @@ class Instaphp
 	public function setAccessToken($access_token)
 	{
 		$this->Users->setAccessToken($access_token);
+		$this->Media->setAccessToken($access_token);
+		$this->Tags->setAccessToken($access_token);
+		$this->Locations->setAccessToken($access_token);
+		$this->Subscriptions->setAccessToken($access_token);
+		$this->Direct->setAccessToken($access_token);
 	}
 
 	/**
