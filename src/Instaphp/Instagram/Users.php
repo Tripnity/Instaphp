@@ -63,6 +63,8 @@ class Users extends Instagram
 			$this->SetAccessToken($res->access_token);
 			$this->user = $res->user;
 			return true;
+		}else{
+			syslog(LOG_INFO, "InstagramLoginException : ".$response->getReasonPhrase()." || ".$response->getEffectiveUrl());
 		}
 		return false;
 	}
