@@ -16,7 +16,6 @@
         "guzzlehttp/guzzle": "4.*",
         "guzzlehttp/log-subscriber": "1.*",
         "monolog/monolog": "1.8.*",
-        "nesQuick/Metrics": "dev-master",
         "tripnity/silex-memcache": "dev-master"
     },
     "repositories": [
