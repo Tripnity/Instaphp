@@ -27,7 +27,9 @@
  */
 
 namespace Instaphp\Instagram;
-use GuzzleHttp\Message\Request;
+
+use GuzzleHttp\Exception\RequestException;
+
 /**
  * Users API
  *
@@ -55,9 +57,12 @@ class Users extends Instagram
                     'code' => $code
                     ]
             ]);
-        } catch (GuzzleHttp\Exception\RequestException $re) {
+        } catch (RequestException $re) {
             printf('%s%s', $re->getRequest(), PHP_EOL);
         }
+
+        $this->memcacheWrapper->increment("instaphp-post-oauth");
+
 		if ($response->getStatusCode() == 200) {
 			$res = new Response($response);
 			$this->SetAccessToken($res->access_token);

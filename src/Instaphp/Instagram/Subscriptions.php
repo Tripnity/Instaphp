@@ -43,19 +43,18 @@ namespace Instaphp\Instagram;
  */
 class Subscriptions extends Instagram
 {
-	/**
-	 * Creates a subscription to an object. Different objects require different
-	 * parameters. Please see {@link http://instagram.com/developer/realtime/#create-a-subscription Create a Subscription}
-	 * for more clarification
-	 * 
-	 * @link http://instagram.com/developer/realtime/#create-a-subscription Create a Subscription
-	 * @param string $object The object in which to subscribe
-	 * @param string $callback_url The callback URL that will handle the updates
-	 * @param string $verify_token A verify token to verify this subscription request
-	 * @param array $params Parameters to pass
-	 * @return \Instaphp\Utils\Http\Response Returns a raw HTTP {@link \Instaphp\Utils\Http\Response Response} object
-	 */
-	public function Create($object, $callback_url, $verify_token, array $params = [])
+    /**
+     * Creates a subscription to an object. Different objects require different
+     * parameters. Please see {@link http://instagram.com/developer/realtime/#create-a-subscription Create a Subscription}
+     * for more clarification
+     *
+     * @param $object
+     * @param $callback_url
+     * @param $verify_token
+     * @param array $params
+     * @return Response
+     */
+    public function Create($object, $callback_url, $verify_token, array $params = [])
 	{
 		$defaults = [
 			'client_secret' => $this->client_secret,

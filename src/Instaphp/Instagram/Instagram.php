@@ -38,6 +38,8 @@ use GuzzleHttp\Event\CompleteEvent;
 use GuzzleHttp\Event\ErrorEvent;
 use GuzzleHttp\Message\Response;
 use Instaphp\Http\Events\InstagramSignedAuthEvent;
+
+use Memcache\Silex\MemcacheWrapper;
 /**
  * The base Instagram API object.
  *
@@ -73,11 +75,13 @@ class Instagram
 	/** @var bool Are we in debug mode */
 	protected $debug = FALSE;
 
-	/** @var GuzzleHttp\Client The Http client for making requests to the API */
+	/** @var \GuzzleHttp\Client The Http client for making requests to the API */
 	protected $http = NULL;
 
-	/** @var Monolog\Logger The Monolog log object */
+	/** @var \Monolog\Logger The Monolog log object */
 	protected $log = NULL;
+
+    protected $memcacheWrapper;
 
 	public function __construct(array $config)
 	{
@@ -126,6 +130,8 @@ class Instagram
         	$emitter->attach(new LogSubscriber($this->log));
         }
         $emitter->attach(new InstagramSignedAuthEvent($this->client_ip, $this->client_secret));
+
+        $this->memcacheWrapper = new MemcacheWrapper([['host' => '127.0.0.1', 'port' => '11211']]);
 	}
 
 	/**
@@ -179,8 +185,36 @@ class Instagram
 	            'headers' => $headers
 	        ]);
 		} catch (\Exception $e) { }
+
+        // instaphp-get- hopefully not this one
+        // instaphp-get-locations
+        // instaphp-get-media
+        // instaphp-get-subscriptions
+        // instaphp-get-users
+        // instaphp-get-tags
+        // instaphp-get-geographies
+        $this->memcacheWrapper->increment("instaphp-get-{$this->getMetricsEndPoint($path)}");
+
 		return $this->parseResponse($response);
 	}
+
+    /**
+     * @param string $path
+     * @return string
+     */
+    protected function getMetricsEndPoint($path)
+    {
+        $endPoints = ['locations', 'media', 'subscriptions', 'users', 'tags', 'geographies'];
+        $path = explode('/', $path);
+        foreach ($endPoints as $endPoint) {
+            // Appropriate endpoint should be the 1 key for ex $path = sprintf('/locations/%s/media/recent', $location_id)
+            if (false !== strpos($path[1], $endPoint)) {
+                return $endPoint;
+            }
+        }
+
+        return '';
+    }
 
 	/**
 	 * Makes a POST request to the API
@@ -199,6 +233,13 @@ class Instagram
 	            'headers' => $headers
 	        ]);
 		} catch (\Exception $e) { }
+
+        // instaphp-post- hopefully not this one
+        // instaphp-post-media
+        // instaphp-post-subscriptions
+        // instaphp-post-users
+        $this->memcacheWrapper->increment("instaphp-post-{$this->getMetricsEndPoint($path)}");
+
 		return $this->parseResponse($response);
 	}
 
@@ -219,6 +260,12 @@ class Instagram
 	            'headers' => $headers
 	        ]);
 		} catch (\Exception $e) { }
+
+        // instaphp-delete- hopefully not this one
+        // instaphp-delete-media
+        // instaphp-delete-subscriptions
+        $this->memcacheWrapper->increment("instaphp-delete-{$this->getMetricsEndPoint($path)}");
+
 		return $this->parseResponse($response);
 	}
 
@@ -257,22 +304,23 @@ class Instagram
 		return $path;
 	}
 
-	/**
-	 * Parses both the {@link \Instaphp\Utils\Http\Response HTTP Response} and
-	 * the {@link \Instaphp\Instagram\Response Instagram Response} and scans them
-	 * for errors and throws the apropriate exception. If there's no errors,
-	 * this method returns the Instagram Response object.
-	 *
-	 * @param \GuzzelHttp\Message\Response $response
-	 * @return \Instaphp\Instagram\Response
-	 * @throws \Instaphp\Exceptions\OAuthParameterException
-	 * @throws \Instaphp\Exceptions\OAuthRateLimitException
-	 * @throws \Instaphp\Exceptions\APINotFoundError
-	 * @throws \Instaphp\Exceptions\APINotAllowedError
-	 * @throws \Instaphp\Exceptions\APIInvalidParametersError
-	 * @throws \Instaphp\Exceptions\HttpException
-	 */
-	private function parseResponse(Response $response)
+    /**
+     * Parses both the {@link \Instaphp\Utils\Http\Response HTTP Response} and
+     * the {@link \Instaphp\Instagram\Response Instagram Response} and scans them
+     * for errors and throws the apropriate exception. If there's no errors,
+     * this method returns the Instagram Response object.
+     *
+     * @param Response $response
+     * @return Response
+     * @throws \Instaphp\Exceptions\APIInvalidParametersError
+     * @throws \Instaphp\Exceptions\HttpException
+     * @throws \Instaphp\Exceptions\APINotAllowedError
+     * @throws \Instaphp\Exceptions\APINotFoundError
+     * @throws \Instaphp\Exceptions\Exception
+     * @throws \Instaphp\Exceptions\OAuthRateLimitException
+     * @throws \Instaphp\Exceptions\OAuthParameterException
+     */
+    private function parseResponse(Response $response)
 	{
 		if ($response == NULL)
 			throw new \Instaphp\Exceptions\Exception("Response object is NULL");
@@ -287,7 +335,6 @@ class Instagram
 					throw new \Instaphp\Exceptions\OAuthParameterException($igresponse->meta['error_message'], $igresponse->meta['code']);
 					break;
 				case 'OAuthRateLimitException':
-				case 'OAuthRateLimitException';
 					throw new \Instaphp\Exceptions\OAuthRateLimitException($igresponse->meta['error_message'], $igresponse->meta['code']);
 					break;
 				case 'APINotFoundError':

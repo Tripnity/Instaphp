@@ -15,8 +15,16 @@
         "php": ">=5.4.0",
         "guzzlehttp/guzzle": "4.*",
         "guzzlehttp/log-subscriber": "1.*",
-        "monolog/monolog": "1.8.*"
+        "monolog/monolog": "1.8.*",
+        "nesQuick/Metrics": "dev-master",
+        "tripnity/silex-memcache": "dev-master"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/Tripnity/silex-memcache.git"
+        }
+    ],
     "require-dev": {
         "phpunit/phpunit": "3.7.*"
     },
