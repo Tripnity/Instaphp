@@ -21,7 +21,7 @@
     "repositories": [
         {
             "type": "vcs",
-            "url": "https://github.com/Tripnity/silex-memcache.git"
+            "url": "https://github.com/Tripnity/silex-memcache"
         }
     ],
     "require-dev": {
