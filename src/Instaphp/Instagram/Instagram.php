@@ -177,7 +177,7 @@ class Instagram
 	 */
 	protected function get($path, array $params = [], array $headers = [])
 	{
-        $query = $this->prepare($params);
+        $query = $this->prepare($params, $path);
         $response = new Response(500);
         try {
 			$response = $this->http->get($this->buildPath($path), [
@@ -225,7 +225,7 @@ class Instagram
 	 */
 	protected function post($path, array $params = [], array $headers = [])
 	{
-        $query = $this->prepare($params);
+        $query = $this->prepare($params, $path);
         $response = new Response(500);
         try {
 			$response = $this->http->post($this->buildPath($path), [
@@ -252,7 +252,7 @@ class Instagram
 	 */
 	protected function delete($path, array $params = [], array $headers = [])
 	{
-        $query = $this->prepare($params);
+        $query = $this->prepare($params, $path);
         $response = new Response(500);
         try {
 			$response = $this->http->delete($this->buildPath($path), [
@@ -275,13 +275,23 @@ class Instagram
 	 * @param array $params The list of parameters to perpare for a request
 	 * @return array The prepared parameters
 	 */
-	private function prepare(array $params)
+	private function prepare(array $params, $endpoint)
 	{
 		$params['client_id'] = $this->client_id;
 		if (!empty($this->access_token)) {
 			unset($params['client_id']);
 			$params['access_token'] = $this->access_token;
 		}
+                
+                // signature api
+                $sig0 = $endpoint;
+                ksort($params);
+                foreach ($params as $key => $val) {
+                  $sig0 .= "|$key=$val";
+                }
+                $sig = hash_hmac('sha256', $sig0, $this->client_secret, false);
+                $params['sig'] = $sig;
+                
 		return $params;
 	}
 
